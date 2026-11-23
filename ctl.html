@@ -159,6 +159,8 @@ const WIDGETS = [
   { id: "pong",      name: "PONG//SOLO",  file: "pong.jsx",      w: 230, h: 314, def: [2, 0],  glyph: "◉" },
   { id: "g2048",     name: "2048//TILE",  file: "game2048.jsx",  w: 230, h: 314, def: [2, 7],  glyph: "⊞" },
   { id: "outpost",   name: "OUTPOST//",   file: "outpost.jsx",   w: 230, h: 314, def: [3, 0],  glyph: "⌂" },
+  { id: "doom",      name: "DOOM//TERM",  file: "doom.jsx",      w: 472, h: 360, def: [3, 7],  glyph: "☠" },   // 2 columns wide
+  { id: "pongduo",   name: "PONG//DUO",   file: "pongduo.jsx",   w: 714, h: 314, def: [2, 12], glyph: "◎" },   // 3 columns wide
 ];
 const BY = Object.fromEntries(WIDGETS.map((w) => [w.id, w]));
 // same tables as the widgets' WIDGET//CTL block — keep in step
@@ -199,9 +201,12 @@ const cols = () => Math.max(1, Math.floor((S.W - 2 * G.M - G.CW) / G.CP) + 1);
 const rows = () => Math.max(1, Math.floor((S.H - 2 * G.MIN + G.GAP) / G.RP));
 const top0 = () => Math.floor((S.H - (rows() * G.RP - G.GAP)) / 2);   // grid sits centred, same gap top and bottom
 const span = (id) => Math.ceil((BY[id].h + G.GAP) / G.RP);
+// wide widgets span several columns: c = its RIGHTMOST column, it reaches cspan−1 columns further left
+const cspan = (id) => Math.max(1, Math.round((BY[id].w + G.GAP) / G.CP));
+const pos = (id, c, r) => px(c + cspan(id) - 1, r);   // top-left corner of widget id anchored at (c, r)
 const px = (c, r) => ({ x: S.W - G.M - G.CW - c * G.CP, y: top0() + r * G.RP });
-const inBounds = (id, p) => p.c >= 0 && p.c < cols() && p.r >= 0 && p.r + span(id) <= rows();
-const overlap = (a, pa, b, pb) => pa.c === pb.c && pa.r < pb.r + span(b) && pb.r < pa.r + span(a);
+const inBounds = (id, p) => p.c >= 0 && p.c + cspan(id) <= cols() && p.r >= 0 && p.r + span(id) <= rows();
+const overlap = (a, pa, b, pb) => pa.c < pb.c + cspan(b) && pb.c < pa.c + cspan(a) && pa.r < pb.r + span(b) && pb.r < pa.r + span(a);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 function valid(L) {
   const on = WIDGETS.filter((w) => L[w.id].placed);
@@ -265,7 +270,7 @@ const bridge = (m) => { try { window.webkit.messageHandlers.ctl.postMessage(m); 
 function toConfig() {
   const widgets = {};
   for (const w of WIDGETS) {
-    const l = S.L[w.id], p = px(l.c, l.r);
+    const l = S.L[w.id], p = pos(w.id, l.c, l.r);
     widgets[w.id] = { placed: !!l.placed, col: l.c, row: l.r, x: p.x, y: p.y, style: l.style || null, scheme: l.scheme || null };
   }
   return { v: 1, app: "WIDGET//CTL", screen: { w: S.W, h: S.H }, grid: { ...G, cols: cols(), rows: rows() }, global: S.global, widgets };
@@ -280,7 +285,7 @@ function load(cfg) {
   for (const w of WIDGETS) {
     const e = ws[w.id]; if (!e) continue;
     let c = e.col, r = e.row;
-    if (typeof c !== "number" && typeof e.x === "number") { c = Math.round((S.W - G.M - G.CW - e.x) / G.CP); r = Math.round((e.y - top0()) / G.RP); }
+    if (typeof c !== "number" && typeof e.x === "number") { c = Math.round((S.W - G.M - G.CW - e.x) / G.CP) - (cspan(w.id) - 1); r = Math.round((e.y - top0()) / G.RP); }
     L[w.id] = { placed: e.placed !== false, c: typeof c === "number" ? c : w.def[0], r: typeof r === "number" ? r : w.def[1], style: e.style || null, scheme: e.scheme || null };
   }
   // screen changed or a bad file: anything that no longer fits goes to storage instead of overlapping
@@ -334,7 +339,7 @@ function layoutMap() {
   $("#gridInfo").textContent = `${cols()} × ${rows()} SLOTS · ${S.W}×${S.H} PT · DROP ON A WIDGET TO SWAP`;
 }
 function tileEl(id, ghost) {
-  const w = BY[id], l = S.L[id], p = px(l.c, l.r), { st, sc } = themeOf(id), d = document.createElement("div");
+  const w = BY[id], l = S.L[id], p = pos(id, l.c, l.r), { st, sc } = themeOf(id), d = document.createElement("div");
   d.className = "tile" + (S.sel === id ? " sel" : ""); d.dataset.id = id;
   d.style.cssText = panelCSS(st, sc) + `;width:${w.w * scale}px;height:${w.h * scale}px;` + (ghost ? "" : `left:${p.x * scale}px;top:${p.y * scale}px;`);
   d.innerHTML = `<div class="gl" style="${nameCSS(st, sc)}">${w.glyph}</div><div class="nm" style="${nameCSS(st, sc)}">${w.name}</div><div class="sz">C${l.c}·R${l.r}</div>`;
@@ -468,7 +473,7 @@ function targetAt(e) {
   const mr = $("#map").getBoundingClientRect(), pad = 30;
   if (e.clientX < mr.left - pad || e.clientX > mr.right + pad || e.clientY < mr.top - pad || e.clientY > mr.bottom + pad) return { kind: "none" };
   const gx = (e.clientX - drag.ox - mr.left) / scale, gy = (e.clientY - drag.oy - mr.top) / scale;
-  const c = Math.min(cols() - 1, Math.max(0, Math.round((S.W - G.M - G.CW - gx) / G.CP)));
+  const c = Math.min(cols() - cspan(drag.id), Math.max(0, Math.round((S.W - G.M - G.CW - gx) / G.CP) - (cspan(drag.id) - 1)));
   const r = Math.min(rows() - span(drag.id), Math.max(0, Math.round((gy - top0()) / G.RP)));
   return { kind: "map", c, r, res: resolveDrop(drag.id, c, r) };
 }
@@ -477,11 +482,11 @@ function showTarget(t) {
   $("#tray").classList.toggle("hot", t.kind === "tray");
   pv.style.display = sm.style.display = "none";
   if (t.kind !== "map") return;
-  const land = t.res.ok ? t.res.L[drag.id] : { c: t.c, r: t.r }, p = px(land.c, land.r);
+  const land = t.res.ok ? t.res.L[drag.id] : { c: t.c, r: t.r }, p = pos(drag.id, land.c, land.r);
   pv.className = t.res.ok ? (t.res.swap ? "swap" : "free") : "bad";
   pv.style.cssText = `display:block;left:${p.x * scale}px;top:${p.y * scale}px;width:${BY[drag.id].w * scale}px;height:${BY[drag.id].h * scale}px`;
   if (t.res.ok && t.res.swap && !t.res.stored) {
-    const b = t.res.swap, q = px(t.res.L[b].c, t.res.L[b].r);
+    const b = t.res.swap, q = pos(b, t.res.L[b].c, t.res.L[b].r);
     sm.style.cssText = `display:block;left:${q.x * scale}px;top:${q.y * scale}px;width:${BY[b].w * scale}px;height:${BY[b].h * scale}px`;
   }
 }
