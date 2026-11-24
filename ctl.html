@@ -43,7 +43,7 @@ main{flex:1;display:flex;min-height:0}
 .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 
 /* screen map */
-#mapWrap{flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center}
+#mapWrap{flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 #map{position:relative;border:1px solid rgba(62,240,255,.3);background:rgba(0,0,0,.35);overflow:hidden;
   box-shadow:0 0 24px rgba(0,0,0,.5),inset 0 0 30px rgba(62,240,255,.04)}
 #map .menubar{position:absolute;left:0;right:0;top:0;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.06)}
@@ -428,7 +428,8 @@ function renderPreview() {
     <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:1px">
       <span style="color:${k.c}">■ OK</span><span style="color:${k.blue}">◆ INFO</span><span style="color:${k.amber}">▲ SOON</span><span style="color:${k.red}">✕ LATE</span><span style="color:${k.dim}">· DIM</span></div></div>`;
 }
-function renderAll() { layoutMap(); renderTray(); renderSide(); $("#live").textContent = S.hidden ? "○ HIDDEN" : "● LIVE"; $("#live").classList.toggle("off", S.hidden); }
+// tray first: a tray that wraps onto a second row takes height from the map area, so the map must be measured after it
+function renderAll() { renderTray(); layoutMap(); renderSide(); $("#live").textContent = S.hidden ? "○ HIDDEN" : "● LIVE"; $("#live").classList.toggle("off", S.hidden); }
 
 // ───────── actions ─────────
 let msgT = 0;
@@ -520,6 +521,8 @@ $("#sync").addEventListener("click", () => { bridge({ type: "refresh" }); say("A
 $("#reset").addEventListener("click", resetLayout);
 window.addEventListener("keydown", (e) => { if (e.key === "Escape") bridge({ type: "close" }); });
 window.addEventListener("resize", () => layoutMap());
+// the tray can change height without a window resize (chips wrap / unwrap) → re-fit the map whenever it does
+try { new ResizeObserver(() => layoutMap()).observe(document.getElementById("tray")); } catch (e) {}
 
 // ───────── called by the app ─────────
 window.WCTL = {
