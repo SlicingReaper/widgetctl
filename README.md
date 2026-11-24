@@ -69,7 +69,7 @@ This widget is one of fifteen that share the same retro-terminal look, the same 
 | ☠ | [**DOOM//TERM**](https://github.com/SlicingReaper/doom-widget) | DOOM shareware Episode 1 in a 2-column widget: WebAssembly engine, savegames kept |
 | ◍ | [**GLOBE//GUESS**](https://github.com/SlicingReaper/globe-widget) | Daily mystery country on a spinning globe: every guess glows hotter the closer it is |
 | ◍ | [**ATLAS//QUIZ**](https://github.com/SlicingReaper/atlas-quiz-widget) | Sporcle-style map quiz: type a name, the country lights up green. World, continents, US states |
-| W | [**WORDLE//**](https://github.com/SlicingReaper/wordle-widget) | The daily five-letter word game: six tries, streaks, guess distribution, unlimited practice |
+| W | [**WORDLE//**](https://github.com/SlicingReaper/wordle-widget) | Wordle in EN · FR · ES · DE: daily word, a new word any time, streaks, guess distribution |
 | 🎛️ | [**WIDGET//CTL**](https://github.com/SlicingReaper/widgetctl) ← you are here | Menu-bar app that arranges and themes all the widgets, plus a ⌃⌥⌘W show/hide hotkey |
 
 **Install all of them at once:** [`vibecoded` → install-all.command](https://github.com/SlicingReaper/vibecoded) · 🤖 Vibecoded with [Claude](https://claude.ai): I designed, directed and tested it, the AI wrote most of the code.
