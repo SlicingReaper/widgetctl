@@ -159,8 +159,11 @@ const WIDGETS = [
   { id: "pong",      name: "PONG//SOLO",  file: "pong.jsx",      w: 230, h: 314, def: [2, 0],  glyph: "◉" },
   { id: "g2048",     name: "2048//TILE",  file: "game2048.jsx",  w: 230, h: 314, def: [2, 7],  glyph: "⊞" },
   { id: "outpost",   name: "OUTPOST//",   file: "outpost.jsx",   w: 230, h: 314, def: [3, 0],  glyph: "⌂" },
+  { id: "atlas",     name: "ATLAS//QUIZ", file: "atlas.jsx",     w: 472, h: 314, def: [3, 10], glyph: "◍" },   // 2 columns wide
   { id: "doom",      name: "DOOM//TERM",  file: "doom.jsx",      w: 472, h: 360, def: [3, 7],  glyph: "☠" },   // 2 columns wide
+  { id: "globe",     name: "GLOBE//GUESS", file: "globe.jsx",    w: 230, h: 314, def: [4, 0],  glyph: "◍" },
   { id: "pongduo",   name: "PONG//DUO",   file: "pongduo.jsx",   w: 714, h: 314, def: [2, 12], glyph: "◎" },   // 3 columns wide
+  { id: "wordle",    name: "WORDLE//",    file: "wordle.jsx",    w: 230, h: 314, def: [4, 7],  glyph: "W" },
 ];
 const BY = Object.fromEntries(WIDGETS.map((w) => [w.id, w]));
 // same tables as the widgets' WIDGET//CTL block — keep in step
